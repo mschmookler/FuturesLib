@@ -1,8 +1,7 @@
 /*
 FuturesLib is a package for interacting with futures and options on futures.
-This is my first Github project with the main goal being to practice coding
-structure, style, and readability. The first version will be developed solely
-to CME Globex. All suggestions are welcome.
+
+Version 0.0.0
 
 Copyright(C) 2019 Matthew A Schmookler
 
@@ -23,7 +22,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #define FUTURESLIB_FUTURESPRODUCT_H
 
 #include <iostream>
-
+#include <string>
+#include <algorithm>
+#include <cstring>
 
 
 // Struct to store data for one futures product.
@@ -37,6 +38,21 @@ public:
 	// Constructor TODO:
 	// 1. Construct from secdef.dat
 	// 2. Construct from incoming FIX
+	FuturesProduct(std::string exch, int p_complex,
+			std::string sec_group, std::string sec_type,
+			std::string curr, char match_algo,
+			float uomq, float mpi, float df) :
+		product_complex(p_complex),
+		match_algorithm(match_algo),
+		unit_of_measure_qty(uomq),
+		min_price_increment(mpi),
+		display_factor(df)
+	{
+		std::memcpy(exchange, exch.c_str(), std::min(8, (int)exch.length()));
+		std::memcpy(security_group, sec_group.c_str(), std::min(8, (int)sec_group.length()));
+		std::memcpy(security_type, sec_type.c_str(), std::min(4, (int)sec_type.length()));
+		std::memcpy(currency, curr.c_str(), std::min(4, (int)curr.length()));
+	}
 
 
 	char* GetExchange() {
@@ -126,6 +142,7 @@ private:
 	float display_factor = 0;
 
 	// True if price ticks in fractions. Ex. notes, bonds
+	// TODO: Store tag 872 in uint32_t.
 	bool is_fractional_price = false;
 
 	// tag 37702 = MainFraction
