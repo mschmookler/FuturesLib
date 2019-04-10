@@ -24,6 +24,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #include "FuturesProduct.hpp"
 #include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\posix_time\posix_time_types.hpp"
 #include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\gregorian\gregorian_types.hpp"
+#include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\posix_time\posix_time_io.hpp"
 
 
 #ifndef NO_BOOST_DATETIME
@@ -34,15 +35,57 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #endif
 #endif
 
+using namespace boost::posix_time;
+using namespace boost::gregorian;
+
 // Struct to store data for one futures contract.
 // Inherits from FuturesProduct, adding the necessary fields.
-struct FuturesContract :FuturesProduct
+struct FuturesContract : public FuturesProduct
 {
 public:
+	// Default Constructor
+	FuturesContract() = default;
+
+
+	// Main Constructor
+	FuturesContract(string tag55, int tag48,
+		ptime activation, ptime expiration, ptime last_update) :
+		instrument_symbol(tag55),
+		security_id(tag48),
+		activation_time(activation),
+		expiration_time(expiration),
+		last_update_time(last_update) {}
+
+	// Construct from FuturesProduct
+	FuturesContract(FuturesProduct product, string tag55, int tag48,
+		ptime activation, ptime expiration, ptime last_update) :
+		FuturesProduct(product.GetExchange(), product.GetComplex(), product.GetSecurityGroup(),
+			product.GetSecurityType(), product.GetCurrency(), product.GetMatchAlgo(),
+			product.GetUOMQ(), product.TickSize(), product.GetDF()),
+		instrument_symbol(tag55),
+		security_id(tag48),
+		activation_time(activation),
+		expiration_time(expiration),
+		last_update_time(last_update){}
+
+	float GetCalendarDTE() {
+		time_period tp(second_clock::universal_time(), expiration_time);
+		return (float)(tp.length().hours() / 24);
+	}
+
+	ptime GetActivation() {
+		return activation_time;
+	}
+
+	ptime GetExpiration() {
+		return expiration_time;
+	}
+
+	ptime LastUpdateTime() {
+		return last_update_time;
+	}
+
 	// TODO: GetTradingDTE()
-	// TODO: GetCalendarDTE()
-	// TODO: GetTickValue()
-	// TODO: GetExpireDatetime()
 
 protected:
 
@@ -51,27 +94,63 @@ private:
 	// Exchange symbol for a specific futures contract (instrument).
 	// Ex. ESH9, ZNM9, ZCN9-ZCZ9, GE:BF H9-M9-U9
 	// Corresponds to tag 107 = SecurityDesc for iLink Order Entry
-	char instrument_symbol[16];
+	// char instrument_symbol[16];
+	string instrument_symbol = "";
 
 	// tag 48 = SecurityID
 	int security_id = 0;
 
 	// tag 200 = MaturityMonthYear
 	// TODO: change type to MonthYear type?
-	char maturity_month_year[16] = {};
+	// char maturity_month_year[16] = {};
+	string matruity_month_year = "";
 
 	// tag 865 = 5(Activation)
 	// Contract activation datetime
 	// Type date_time
-	boost::posix_time::ptime activation_time;
+	ptime activation_time = not_a_date_time;
 
 	// tag 865 = 7(Expiration)
 	// Contract expiration datetime
 	// Type date_time
-	boost::posix_time::ptime expiration_time;
+	ptime expiration_time = not_a_date_time;
 
 	// tag779 = LastUpdateTime
 	// UTC Timestamp
-	boost::posix_time::ptime last_update_time;
+	ptime last_update_time = second_clock::local_time();
 };
+/*
+struct OptionsContract : public FuturesContract
+{
+public:
+
+	string GetUnderlyingSymbol() {
+		return underlying_symbol;
+	}
+
+	int GetUnderlyingID() {
+		return underlying_id;
+	}
+
+protected:
+private:
+	// tag 201 = PutOrCall
+	char put_call = '\0';
+
+	//tag 202 = StrikePrice
+	float strike_price = 0;
+
+	// tag 9779 = UserDefinedInstrument
+	// 'Y' or 'N'
+	char is_UDS = '\0';
+
+	// tag 6350 = TickRule
+	int tick_rule = 0;
+
+	// tag 55 of underlying
+	string underlying_symbol = "";
+
+	// tag 48 of underlying
+	int underlying_id = 0;
+};*/
 #endif // FUTURESLIB_FUTURESCONTRACT_H

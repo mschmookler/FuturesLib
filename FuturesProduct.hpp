@@ -26,6 +26,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <cstring>
 
+using std::string;
 
 // Struct to store data for one futures product.
 // A futures product is a non-date-specific futures contract.
@@ -38,24 +39,28 @@ public:
 	// Constructor TODO:
 	// 1. Construct from secdef.dat
 	// 2. Construct from incoming FIX
-	FuturesProduct(std::string exch, int p_complex,
-			std::string sec_group, std::string sec_type,
-			std::string curr, char match_algo,
+
+
+	// Default constructor
+	FuturesProduct() = default;
+
+	// Main constructor
+	FuturesProduct(string exch, int p_complex,
+			string sec_group, string sec_type,
+			string curr, char match_algo,
 			float uomq, float mpi, float df) :
+		exchange(exch),
 		product_complex(p_complex),
+		security_group(sec_group),
+		security_type(sec_type),
+		currency(curr),
 		match_algorithm(match_algo),
 		unit_of_measure_qty(uomq),
 		min_price_increment(mpi),
-		display_factor(df)
-	{
-		std::memcpy(exchange, exch.c_str(), std::min(8, (int)exch.length()));
-		std::memcpy(security_group, sec_group.c_str(), std::min(8, (int)sec_group.length()));
-		std::memcpy(security_type, sec_type.c_str(), std::min(4, (int)sec_type.length()));
-		std::memcpy(currency, curr.c_str(), std::min(4, (int)curr.length()));
-	}
+		display_factor(df){}
 
 
-	char* GetExchange() {
+	string GetExchange() {
 		return exchange;
 	}
 
@@ -63,34 +68,42 @@ public:
 		return product_complex;
 	}
 
-	void print_exchange() {
-		char* p = exchange;
-		while (*p) {
-			std::cout << *p++;
-		}
-		std::cout << '\n';
+	string GetSecurityGroup() {
+		return security_group;
 	}
 
-	void print_security_group() {
-		char* p = security_group;
-		while (*p) {
-			std::cout << *p++;
-		}
-		std::cout << '\n';
+	string GetSecurityType() {
+		return security_type;
+	}
+
+	string GetCurrency() {
+		return currency;
+	}
+
+	char GetMatchAlgo() {
+		return match_algorithm;
+	}
+
+	float GetUOMQ() {
+		return unit_of_measure_qty;
+	}
+
+	float TickSize() {
+		return min_price_increment;
+	}
+
+	float GetDF() {
+		return display_factor;
 	}
 
 protected:
-	// Sometimes a specific futures contract will need to override
-	// default MinPriceIncrement. Ex. When a GE contract becomes front month.
-	// TODO: SetMinPriceIncrement
-	void SetMinPriceIncrement(float f) {
-		min_price_increment = f;
-	}
+	
 
 private:
 	// tag 207 = SecurityExchange
 	// Exchange code: XCME, XCBT, XNYM, XCEC, etc.
-	char exchange[8] = {};
+	// char exchange[8] = {};
+	string exchange = "";
 
 	// tag 462 = UnderlyingProduct
 	// Aka product complex or asset class.
@@ -110,16 +123,19 @@ private:
 	// Not to be confused with tag 6937 = Asset.
 	// Ex. ES, ZN, ZC, ZE (GE Opt), GE
 	// Corresponds to tag 55 = Symbol for iLink Order Entry
-	char security_group[8] = {};
+	// char security_group[8] = {};
+	string security_group = "";
 
 	// tag 762 = SecuritySubType
 	// Indicates spread or combo type.
 	// Ex. SP, BF, DF, CF, VT
-	char security_type[4] = { '\0' };
+	// char security_type[4] = { '\0' };
+	string security_type = "";
 
 	// tag 15 = Currency
 	// Currency used in price.
-	char currency[4] = "USD";
+	// char currency[4] = "USD";
+	string currency = "";
 
 	// tag 1142 = MatchAlgorithm
 	// CME assigned values:
