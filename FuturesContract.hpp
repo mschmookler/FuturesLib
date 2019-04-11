@@ -59,14 +59,18 @@ public:
 	// Construct from FuturesProduct
 	FuturesContract(FuturesProduct product, string tag55, int tag48,
 		ptime activation, ptime expiration, ptime last_update) :
-		FuturesProduct(product.GetExchange(), product.GetComplex(), product.GetSecurityGroup(),
-			product.GetSecurityType(), product.GetCurrency(), product.GetMatchAlgo(),
-			product.GetUOMQ(), product.TickSize(), product.GetDF()),
+		FuturesProduct(product.GetExchange(), product.GetComplex(), product.GetMktSegID(),
+			product.GetSecurityGroup(), product.GetSecurityType(), product.GetCurrency(),
+			product.GetMatchAlgo(), product.GetUOMQ(), product.TickSize(), product.GetDF()),
 		instrument_symbol(tag55),
 		security_id(tag48),
 		activation_time(activation),
 		expiration_time(expiration),
 		last_update_time(last_update){}
+
+	string GetInstrumentSymbol() {
+		return instrument_symbol;
+	}
 
 	float GetCalendarDTE() {
 		time_period tp(second_clock::universal_time(), expiration_time);

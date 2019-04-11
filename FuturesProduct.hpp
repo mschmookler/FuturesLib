@@ -45,12 +45,13 @@ public:
 	FuturesProduct() = default;
 
 	// Main constructor
-	FuturesProduct(string exch, int p_complex,
+	FuturesProduct(string exch, int p_complex, int ms_id,
 			string sec_group, string sec_type,
 			string curr, char match_algo,
 			float uomq, float mpi, float df) :
 		exchange(exch),
 		product_complex(p_complex),
+		mkt_seg_id(ms_id),
 		security_group(sec_group),
 		security_type(sec_type),
 		currency(curr),
@@ -66,6 +67,10 @@ public:
 
 	int GetComplex() {
 		return product_complex;
+	}
+
+	int GetMktSegID() {
+		return mkt_seg_id;
 	}
 
 	string GetSecurityGroup() {
@@ -117,6 +122,9 @@ private:
 	// 16 = Energy
 	// 17 = Metals
 	int product_complex = 0;
+
+	// tag 1300 = MarketSegmentID
+	int mkt_seg_id = 0;
 
 	// tag 1151 = Security Group
 	// Exchange symbol for the given product group.
