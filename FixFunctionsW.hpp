@@ -1,3 +1,26 @@
+/*
+FuturesLib is a package for interacting with futures and options on futures.
+
+Version 0.0.0
+
+Copyright(C) 2019 Matthew A Schmookler
+
+This program is free software : you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License v3 as published
+by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#ifndef FUTURESLIB_FIXFUNCTIONSW_H
+#define FUTURESLIB_FIXFUNCTIONSW_H
+
 #include "FuturesContract.hpp"
 #include "J:/SCHMOOKLER/src/hffix.hpp"
 #include <fstream>		// For writing log file
@@ -13,6 +36,9 @@ int MyAccount = 12345678;
 string MyCompID = "XYZ6N2N";
 string MyTag50 = "mschmookler";
 string MyTag142 = "US,IL";
+string MyTag1603 = "FLIB";
+string MyTag1604 = "1.0";
+string MyTag1605 = "MAS";
 
 // Log file
 string LogFile = "H:\\Log.csv";
@@ -20,15 +46,108 @@ string LogFile = "H:\\Log.csv";
 // Timestamp converter
 // Takes a ptime and returns timestamp of the form
 // "YYYYMMDD-HH:MM:SS.sss"
-string to_UTC_timestamp(ptime pt) {
+string to_UTC_timestamp(ptime pt)
+{
 	string temp1 = to_iso_string(pt);
 	string temp2 = to_simple_string(pt);
-	return (temp1.substr(0, 8) + temp2.erase(0, 12));
+	return (temp1.substr(0, 8) + "-" + temp2.erase(0, 12));
+}
+
+/*string calculateHMAC(string &key, string&canonicalRequest){
+	return encodedHmac;
+}*/
+
+// Places a Logon message (Session Layer) in the buffer and
+// constructs canonical FIX msg used to generate HMAC
+int Logon_msgw(int MSGW_id)
+{
+	// Timestamp
+	send_time = microsec_clock::universal_time();
+	
+	// tag 34
+	string canonical = std::to_string(g_seq_num);
+	canonical.push_back('\n');
+	// tag 49
+	canonical.append(MyCompID);
+	canonical.push_back('\n');
+	// tag 50
+	canonical.append(MyTag50);
+	canonical.push_back('\n');
+	// tag 52
+	canonical.append(to_UTC_timestamp(send_time));
+	canonical.push_back('\n');
+	// tag 57
+	canonical.append(std::to_string(MSGW_id));
+	canonical.push_back('\n');
+	// tag 108
+	canonical.append("60");
+	canonical.push_back('\n');
+	// tag 142
+	canonical.append(MyTag142);
+	canonical.push_back('\n');
+	/* tag 369		// Optional tag
+	canonical.append("60");
+	canonical.push_back('\n'); */
+	// tag 1603-ApplicationSystemName
+	canonical.append(MyTag1603);	// FuturesLib
+	canonical.push_back('\n');
+	// tag 1604-ApplicationSystemVersion
+	canonical.append(MyTag1604);
+	canonical.push_back('\n');
+	// tag 1605-ApplicationSystemVendor
+	canonical.append(MyTag1605);
+
+	// HMAC signature
+	// string encrypted_password = calculateHMAC(key, canonical);
+
+	// Create mw
+	hffix::message_writer mw(buffer, buffer + sizeof(buffer));
+
+	// Begin header
+	mw.push_back_header("FIX.4.2");	// BeginString & BodyLength
+	mw.push_back_string(hffix::tag::MsgType, "A");
+	mw.push_back_int(hffix::tag::MsgSeqNum, g_seq_num);
+	mw.push_back_string(hffix::tag::SenderCompID, MyCompID);
+	mw.push_back_string(hffix::tag::SenderSubID, MyTag50);
+	mw.push_back_timestamp(hffix::tag::SendingTime, send_time);
+	mw.push_back_int(hffix::tag::TargetSubID, MSGW_id);
+	mw.push_back_int(hffix::tag::HeartBtInt, 60);
+	mw.push_back_string(hffix::tag::SenderLocationID, MyTag142);
+	// End header
+
+	mw.push_back_string(1603, MyTag1603);
+	mw.push_back_string(1604, MyTag1604);
+	mw.push_back_string(1605, MyTag1605);
+
+	// tag 354-EncodedTextLen
+	// Contains length of AccessKeyID
+	// mw.push_back_int(354, MyTag354);
+
+	// tag 355-EncodedText
+	// Contains the AccessKeyID
+	// mw.push_back_string(355, MyTag355);
+
+	// tag 1400-EncryptedPasswordMethod
+	// Contains the AlgorithmID
+	// Ex. "CME-1-SHA-256"
+	// mw.push_back_string(1400, "CME-1-SHA-256");
+
+	// tag 1401-EncryptedPasswordLen
+	// Contains the length of the HMAC signature
+	// mw.push_back_int(1401, 34);
+
+	// tag 1402-EncryptedPassword
+	// Contains the HMAC signature. Must be encoded as follows:
+	// see https://tools.ietf.org/html/rfc4648#section-5
+	// mw.push_back_string(1402, encrypted_password);
+
+	return 0;
 }
 
 // Places a new limit order message in the buffer
 // In the future or possibly in a wrapper, we might want this to return Exchange order id
-int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument, string price) {
+int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument, string price)
+{
 	// Timestamp
 	send_time = microsec_clock::universal_time();
 
@@ -36,7 +155,7 @@ int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument
 	hffix::message_writer mw(buffer, buffer + sizeof(buffer));
 
 	// Begin header
-	mw.push_back_header("FIXT.1.1");	// BeginString & BodyLength
+	mw.push_back_header("FIX.4.2");	// BeginString & BodyLength
 	mw.push_back_string(hffix::tag::MsgType, "D");
 	mw.push_back_int(hffix::tag::MsgSeqNum, g_seq_num++);
 	mw.push_back_string(hffix::tag::SenderCompID, MyCompID);
@@ -144,7 +263,7 @@ int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument
 	// 29. Minimum Quantity
 	log_string.push_back(',');
 	// 30. Country of Origin
-	log_string.append(MyTag142);
+	log_string.append(MyTag142.substr(0,2));
 	log_string.push_back(',');
 	// 31 - 38.
 	log_string.append(",,,,,,,,");
@@ -160,3 +279,6 @@ int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument
 
 	return 0;
 }
+
+
+#endif // FUTURESLIB_FIXFUNCTIONSW_H
