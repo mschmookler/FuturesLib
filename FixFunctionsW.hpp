@@ -24,7 +24,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #include "FuturesContract.hpp"
 #include "J:/SCHMOOKLER/src/hffix.hpp"
 #include <fstream>		// For writing log file
-#include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\posix_time\time_formatters.hpp"
 
 int g_seq_num = 1;
 int g_ord_num = 12300001;

@@ -22,9 +22,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #define FUTURESLIB_FUTURESCONTRACT_H
 
 #include "FuturesProduct.hpp"
-#include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\posix_time\posix_time_types.hpp"
+#include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\posix_time\posix_time.hpp"
 #include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\gregorian\gregorian_types.hpp"
-#include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\posix_time\posix_time_io.hpp"
 
 
 #ifndef NO_BOOST_DATETIME
@@ -68,8 +67,98 @@ public:
 		expiration_time(expiration),
 		last_update_time(last_update){}
 
+	// Construct from secdef text/dat file.
+	// Takes a string containing the security definition for a
+	// futures contract, parses the string, and constructs the
+	// proper object.
+	FuturesContract(string secdef_msg)
+	{
+		// TODO: Rewrite this whole constructor using a single char pointer and hffix methods
+		size_t begin, end;
+		string q;
+		if (secdef_msg[3] != 'd') {		// 35=d => SecurityDefinition
+			FuturesContract();			// default constructor
+		}
+		else {
+			// Set tag 1300-MarketSegmentID
+			q = '\x01' + "1300=";
+			begin = secdef_msg.find(q) + 6;							// sizeof("\x011300=") = 6
+			SetMktSegID(std::stoi(secdef_msg.substr(begin, 2)));	// Always 2 digits
+
+			// Set tag 462-UnderlyingProduct
+			q = '\x01' + "462=";
+			begin = secdef_msg.find(q, begin) + 5;					// points to start of field
+			end = secdef_msg.find('\x01', begin);					// points to next SOH char
+			SetComplex(std::stoi(secdef_msg.substr(begin, begin - end)));
+
+			// Set tag 207-SecurityExchange
+			q = '\x01' + "207=";
+			begin = secdef_msg.find(q, end) + 5;
+			end = secdef_msg.find('\x01', begin);
+			SetExchange(secdef_msg.substr(begin, begin - end));
+
+			// Set tag 1151-SecurityGroup
+			q = '\x01' + "1151=";
+			begin = secdef_msg.find(q, end) + 6;
+			end = secdef_msg.find('\x01', begin);
+			SetSecurityGroup(secdef_msg.substr(begin, begin - end));
+
+			// Set tag 55-Symbol
+			q = '\x01' + "55=";
+			begin = secdef_msg.find(q, end) + 4;
+			end = secdef_msg.find('\x01', begin);
+			SetExchange(secdef_msg.substr(begin, begin - end));
+			
+			// Set tag 48-SecurityID
+			q = '\x01' + "48=";
+			begin = secdef_msg.find(q, end) + 4;
+			end = secdef_msg.find('\x01', begin);
+			SetSecurityID(std::stoi(secdef_msg.substr(begin, begin - end)));
+
+			// Set tag 15-Currency
+			q = '\x01' + "15=";
+			begin = secdef_msg.find(q, end) + 4;
+			end = secdef_msg.find('\x01', begin);
+			SetCurrency(secdef_msg.substr(begin, begin - end));
+
+			// Set tag 1142-MatchAlgorithm
+			q = '\x01' + "1142=";
+			begin = secdef_msg.find(q, end) + 6;
+			SetMatchAlgo(secdef_msg[begin]);
+
+			// Set tag 969-MinPriceIncrement
+			q = '\x01' + "969=";
+			begin = secdef_msg.find(q, end) + 5;
+			end = secdef_msg.find('\x01', begin);
+			SetMPI(std::stof(secdef_msg.substr(begin, begin - end)));
+
+			// Set Activation Time
+			q = '\x01' + "865=5";
+			begin = secdef_msg.find(q, end) + 12;		// "\x01 865=5 \x01 1145="
+			end = secdef_msg.find('\x01', begin);
+			string temp = secdef_msg.substr(begin, begin - end);
+			temp.insert(begin + 8, 1, 'T');		// Add 'T' for iso form
+			SetActivation(from_iso_string(temp));
+
+			// Set Expiration Time
+			q = '\x01' + "865=7";
+			begin = secdef_msg.find(q, end) + 12;		// "\x01 865=7 \x01 1145="
+			end = secdef_msg.find('\x01', begin);
+			temp = secdef_msg.substr(begin, begin - end);
+			temp.insert(begin + 8, 1, 'T');		// Add 'T' for iso form
+			SetExpiration(from_iso_string(temp));
+
+			SetLastUpdateTime(second_clock::universal_time());
+		}
+	}
+
+
 	string GetInstrumentSymbol() {
 		return instrument_symbol;
+	}
+
+	int GetSecurityID() {
+		return security_id;
 	}
 
 	float GetCalendarDTE() {
@@ -92,6 +181,26 @@ public:
 	// TODO: GetTradingDTE()
 
 protected:
+
+	void SetInstrumentSymbol(string s) {
+		instrument_symbol = s;
+	}
+
+	void SetSecurityID(int i) {
+		security_id = i;
+	}
+
+	void SetActivation(ptime pt) {
+		activation_time = pt;
+	}
+
+	void SetExpiration(ptime pt) {
+		expiration_time = pt;
+	}
+
+	void SetLastUpdateTime(ptime pt) {
+		last_update_time = pt;
+	}
 
 private:
 	// tag 55 = Symbol

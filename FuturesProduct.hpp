@@ -103,6 +103,46 @@ public:
 
 protected:
 	
+	void SetExchange(string s) {
+		exchange = s;
+	}
+
+	void SetComplex(int i) {
+		product_complex = i;
+	}
+
+	void SetMktSegID(int i) {
+		mkt_seg_id = i;
+	}
+
+	void SetSecurityGroup(string s) {
+		security_group = s;
+	}
+
+	void SetSecurityType(string s) {
+		security_type = s;
+	}
+
+	void SetCurrency(string s) {
+		currency = s;
+	}
+
+	void SetMatchAlgo(char c) {
+		match_algorithm = c;
+	}
+
+	void SetUOMQ(float f) {
+		unit_of_measure_qty = f;
+	}
+
+	void SetMPI(float f) {
+		min_price_increment = f;
+	}
+
+	void SetDF(float f) {
+		display_factor = f;
+	}
+
 
 private:
 	// tag 207 = SecurityExchange
