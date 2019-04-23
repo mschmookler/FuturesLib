@@ -39,7 +39,7 @@ using namespace boost::gregorian;
 
 // Struct to store data for one futures contract.
 // Inherits from FuturesProduct, adding the necessary fields.
-struct FuturesContract : public FuturesProduct
+struct FuturesContract
 {
 public:
 	// Default Constructor
@@ -47,25 +47,39 @@ public:
 
 
 	// Main Constructor
-	FuturesContract(string tag55, int tag48,
+	FuturesContract(string exch, int p_complex, int ms_id,
+		string sec_group, string sec_type,
+		string curr, char match_algo,
+		float uomq, float mpi, float df,
+		string tag55, int tag48,
 		ptime activation, ptime expiration, ptime last_update) :
+		instrument_symbol(tag55),
+		security_id(tag48),
+		activation_time(activation),
+		expiration_time(expiration),
+		last_update_time(last_update)
+	{
+		product_specs.exchange = exch;
+		product_specs.product_complex = p_complex;
+		product_specs.mkt_seg_id = ms_id;
+		product_specs.security_group = sec_group;
+		product_specs.security_type = sec_type;
+		product_specs.currency = curr;
+		product_specs.match_algorithm = match_algo;
+		product_specs.unit_of_measure_qty = uomq;
+		product_specs.min_price_increment = mpi;
+		product_specs.display_factor = df;
+	}
+
+	// Construct from ProductSpecs
+	FuturesContract(ProductSpecs product, string tag55, int tag48,
+		ptime activation, ptime expiration, ptime last_update) :
+		product_specs(product),
 		instrument_symbol(tag55),
 		security_id(tag48),
 		activation_time(activation),
 		expiration_time(expiration),
 		last_update_time(last_update) {}
-
-	// Construct from FuturesProduct
-	FuturesContract(FuturesProduct product, string tag55, int tag48,
-		ptime activation, ptime expiration, ptime last_update) :
-		FuturesProduct(product.GetExchange(), product.GetComplex(), product.GetMktSegID(),
-			product.GetSecurityGroup(), product.GetSecurityType(), product.GetCurrency(),
-			product.GetMatchAlgo(), product.GetUOMQ(), product.TickSize(), product.GetDF()),
-		instrument_symbol(tag55),
-		security_id(tag48),
-		activation_time(activation),
-		expiration_time(expiration),
-		last_update_time(last_update){}
 
 	// Construct from secdef text/dat file.
 	// Takes a string containing the security definition for a
@@ -91,6 +105,45 @@ public:
 		}*/
 	}
 
+	string GetExchange() {
+		return product_specs.exchange;
+	}
+
+	int GetComplex() {
+		return product_specs.product_complex;
+	}
+
+	int GetMktSegID() {
+		return product_specs.mkt_seg_id;
+	}
+
+	string GetSecurityGroup() {
+		return product_specs.security_group;
+	}
+
+	string GetSecurityType() {
+		return product_specs.security_type;
+	}
+
+	string GetCurrency() {
+		return product_specs.currency;
+	}
+
+	char GetMatchAlgo() {
+		return product_specs.match_algorithm;
+	}
+
+	float GetUOMQ() {
+		return product_specs.unit_of_measure_qty;
+	}
+
+	float TickSize() {
+		return product_specs.min_price_increment;
+	}
+
+	float GetDF() {
+		return product_specs.display_factor;
+	}
 
 	string GetInstrumentSymbol() {
 		return instrument_symbol;
@@ -142,6 +195,10 @@ protected:
 	}
 
 private:
+	// Product Specs struct
+	ProductSpecs product_specs = {};
+
+
 	// tag 55 = Symbol
 	// Exchange symbol for a specific futures contract (instrument).
 	// Ex. ESH9, ZNM9, ZCN9-ZCZ9, GE:BF H9-M9-U9
