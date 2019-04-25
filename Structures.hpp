@@ -198,12 +198,13 @@ struct InstrumentIDs
 	//! \brief tag 48-SecurityID
 	int security_id = 0;
 
-	//! \brief tag 55-Symbol
-	//!
-	//! ASCII string that uniquely identifies an instrument.
-	//! e.g. ESM9, ZCN9-ZCZ9, GE:BF H9-M9-U9
-	//! Corresponds to tag 107 = SecurityDesc for iLink Order Entry
-	//! Limit to 24 chars.
+	/** \brief tag 55-Symbol
+	 *
+	 *  ASCII string that uniquely identifies an instrument.
+	 *  e.g. ESM9, ZCN9-ZCZ9, GE:BF H9-M9-U9
+	 *  Corresponds to tag 107 = SecurityDesc for iLink Order Entry
+	 *  Limit to 24 chars.
+	 */
 	string instrument_symbol = "";
 };
 
@@ -228,36 +229,49 @@ struct OptionSpecs
 	//! 'Y' or 'N'
 	char is_UDS = '\0';
 
-	//! \brief tag 6350-TickRule
-	//!
-	//! Valid values: 1, 2, 3, 4, 10, 11, 12
-	//! see https://www.cmegroup.com/confluence/display/EPICSANDBOX/MDP+3.0+Variable+Tick+Table
+	/** \brief tag 6350-TickRule
+	 *
+	 *  Valid values: 1, 2, 3, 4, 10, 11, 12
+	 *  see https://www.cmegroup.com/confluence/display/EPICSANDBOX/MDP+3.0+Variable+Tick+Table
+	 */
 	int tick_rule = 0;
 };
 
+/*! \brief POD struct for session statistics
+ *
+ *
+ *
+ */
 struct SessionStats
 {
-	float open;
-	float close;
-	float low;
-	float high;
-	float settlement;
+	double open;
+	double close;
+	double low;
+	double high;
+	double settlement;
 	uint32_t volume;
 	uint32_t open_interest;
 };
 
 struct RealTimeData
 {
-	float bid;
-	float ask;
+	
+	double bid;
+	double ask;
 	uint32_t bid_qty;
 	uint32_t ask_qty;
 	uint32_t imp_bid_qty;
 	uint32_t imp_ask_qty;
 	uint32_t last_trade;
 	uint32_t last_trade_qty;
-	float change_last_trade;
+	double change_last_trade;
 	boost::posix_time::ptime last_trade_time;
+};
+
+struct ESPrice_t
+{
+	double price = 0.0;
+	double tick = 25.0;
 };
 
 namespace pcomplex {
