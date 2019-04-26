@@ -43,6 +43,12 @@ using namespace boost::gregorian;
 class FuturesContract
 {
 public:
+	/*! \brief Construct by symbol lookup.
+	 *
+	 *
+	 *
+	 *
+	 */
 protected:
 private:
 	ProductSpecs product;
