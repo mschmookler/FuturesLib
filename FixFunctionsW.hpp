@@ -32,23 +32,23 @@ ptime send_time;
 
 // User/Session settings
 int MyAccount = 12345678;
-string MyCompID = "XYZ6N2N";
-string MyTag50 = "mschmookler";
-string MyTag142 = "US,IL";
-string MyTag1603 = "FLIB";
-string MyTag1604 = "1.0";
-string MyTag1605 = "MAS";
+std::string MyCompID = "XYZ6N2N";
+std::string MyTag50 = "mschmookler";
+std::string MyTag142 = "US,IL";
+std::string MyTag1603 = "FLIB";
+std::string MyTag1604 = "1.0";
+std::string MyTag1605 = "MAS";
 
 // Log file
-string LogFile = "H:\\Log.csv";
+std::string LogFile = "H:\\Log.csv";
 
 // Timestamp converter
 // Takes a ptime and returns timestamp of the form
 // "YYYYMMDD-HH:MM:SS.sss"
-string to_UTC_timestamp(ptime pt)
+std::string to_UTC_timestamp(ptime pt)
 {
-	string temp1 = to_iso_string(pt);
-	string temp2 = to_simple_string(pt);
+	std::string temp1 = to_iso_string(pt);
+	std::string temp2 = to_simple_string(pt);
 	return (temp1.substr(0, 8) + "-" + temp2.erase(0, 12));
 }
 
@@ -64,7 +64,7 @@ int Logon_msgw(int MSGW_id)
 	send_time = microsec_clock::universal_time();
 	
 	// tag 34
-	string canonical = std::to_string(g_seq_num);
+	std::string canonical = std::to_string(g_seq_num);
 	canonical.push_back('\n');
 	// tag 49
 	canonical.append(MyCompID);
@@ -145,7 +145,7 @@ int Logon_msgw(int MSGW_id)
 
 // Places a new limit order message in the buffer
 // In the future or possibly in a wrapper, we might want this to return Exchange order id
-int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument, string price)
+int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument, std::string price)
 {
 	// Timestamp
 	send_time = microsec_clock::universal_time();
@@ -161,7 +161,7 @@ int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument
 	mw.push_back_string(hffix::tag::SenderSubID, MyTag50);
 	mw.push_back_timestamp(hffix::tag::SendingTime, send_time);
 	mw.push_back_string(hffix::tag::TargetCompID, "CME");
-	mw.push_back_int(hffix::tag::TargetSubID, instrument.GetMktSegID());
+	mw.push_back_int(hffix::tag::TargetSubID, instrument.product.mkt_seg_id);
 	mw.push_back_string(hffix::tag::SenderLocationID, MyTag142);
 	// End header
 
@@ -187,7 +187,7 @@ int NewLimitOrder(const char buy_sell, int order_qty, FuturesContract instrument
 	std::cout << '\n';
 
 	// Logging string.
-	string log_string = "";
+	std::string log_string = "";
 	// 1. Sending timestamp
 	log_string.append(to_UTC_timestamp(send_time));
 	log_string.push_back(',');

@@ -48,7 +48,6 @@ struct ProductSpecs
 		std::string sec_group, std::string sec_type,
 		std::string curr, char match_algo,
 		float uomq, float df) :
-		exchange(exch),
 		product_complex(p_complex),
 		mkt_seg_id(ms_id),
 		security_group(sec_group),
@@ -56,7 +55,10 @@ struct ProductSpecs
 		currency(curr),
 		match_algorithm(match_algo),
 		unit_of_measure_qty(uomq),
-		display_factor(df) {}
+		display_factor(df)
+	{
+		strncpy_s(exchange, exch.c_str(), 7);
+	}
 
 
 	/*! \brief tag 207-SecurityExchange
@@ -64,7 +66,7 @@ struct ProductSpecs
 	 *  Exchange code: XCME, XCBT, XNYM, XCEC, etc.
 	 *  Limit to 8 chars.
 	 */
-	std::string exchange = "";
+	char exchange[8] = {'\0'};
 
 
 	/*! \brief tag 462-UnderlyingProduct
@@ -188,13 +190,13 @@ struct ContractSpecs
 	 *
 	 *  Contract activation datetime
 	 */
-	boost::posix_time::ptime activation_time = not_a_date_time;
+	boost::posix_time::ptime activation_time = boost::posix_time::not_a_date_time;
 
 	/*! \brief tag 865 = 7(Expiration)
 	 *
 	 *  Contract expiration datetime
 	 */
-	boost::posix_time::ptime expiration_time = not_a_date_time;
+	boost::posix_time::ptime expiration_time = boost::posix_time::not_a_date_time;
 };
 
 /*! \brief POD struct for instrument identifiers
@@ -230,7 +232,7 @@ struct OptionSpecs
 	OptionSpecs() = default;
 
 	/*! \brief Main constructor */
-	OptionSpecs();
+	//OptionSpecs();
 
 	/*! \brief tag 201-PutOrCall
 	 *

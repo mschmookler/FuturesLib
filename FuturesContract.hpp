@@ -21,8 +21,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #ifndef FUTURESLIB_FUTURESCONTRACT_H
 #define FUTURESLIB_FUTURESCONTRACT_H
 
+#include <iostream>
+#include <fstream>
 #include "Structures.hpp"
-
+#include "J:\SCHMOOKLER\src\hffix.hpp"
 
 #ifndef NO_BOOST_DATETIME
 #ifdef DATE_TIME_TIME_HPP___ // Header include guard from boost/date_time/time.hpp
@@ -49,6 +51,70 @@ public:
 	 *
 	 *
 	 */
+	FuturesContract(std::string globex_symbol, std::string secdef_file)
+	{
+		std::ifstream myfile(secdef_file);
+		std::string mystr;
+		// Loop through lines in file.
+		while (std::getline(myfile, mystr))
+		{
+			std::size_t start_of_tag_field = mystr.find("\x01\x35\x35\x3D");	// "\x01" + "55="
+			if (start_of_tag_field != std::string::npos)
+			{
+				if (mystr.substr(start_of_tag_field + 4, globex_symbol.length() + 1) == globex_symbol + "\x01")
+				{
+					std::cout << "Symbol found!" << '\n';
+					char buffer[1 << 11];
+					hffix::message_writer mw(buffer, buffer + sizeof(buffer));
+					mw.push_back_header("FIX.4.2");
+					mw.push_back_string(hffix::tag::MsgType, mystr.substr(3));
+					mw.push_back_trailer();
+					hffix::message_reader mr(mw);
+					hffix::message_reader_const_iterator i = mr.begin();
+					if (mr.find_with_hint(hffix::tag::MarketSegmentID, i))
+					{
+						std::cout << "mkt_seg found!" << '\n';
+						product.mkt_seg_id = i->value().as_int<int>();
+						i++;
+					}
+					if (mr.find_with_hint(hffix::tag::UnderlyingProduct, i))
+					{
+						std::cout << "complex found!" << '\n';
+						product.product_complex = i->value().as_int<int>();
+						i++;
+					}
+					if (mr.find_with_hint(hffix::tag::SecurityExchange, i))
+					{
+						//product.exchange.append(i->value().begin(), i->value().end() - i->value().begin());
+						strncpy_s(product.exchange, i->value().begin(), i->value().size());
+						i++;
+					}
+					if (mr.find_with_hint(hffix::tag::SecurityGroup, i))
+					{
+						product.security_group.append(i++->value().begin(), i->value().size());
+						//i++;
+					}
+					if (mr.find_with_hint(hffix::tag::SecurityID, i))
+					{
+						iid.security_id = i->value().as_int<int>();
+						i++;
+					}
+					if (mr.find_with_hint(hffix::tag::MaturityMonthYear, i))
+					{
+						contract.matruity_month_year.append(i->value().begin(), i->value().size());
+						i++;
+						std::cout << product.mkt_seg_id << '\n';
+						std::cout << product.product_complex << '\n';
+						std::cout << product.exchange << '\n';
+						std::cout << product.security_group << '\n';
+						std::cout << iid.security_id << '\n';
+						std::cout << contract.matruity_month_year << '\n';
+					}
+				}
+			}
+		}
+	}
+
 protected:
 private:
 	ProductSpecs product;
@@ -56,6 +122,26 @@ private:
 	InstrumentIDs iid;
 	
 };
+
+/*! \brief Class for creating FuturesContracts
+ *
+ *  Example: FutureFactory("GE", "OUT");
+ *  This is an object capable of constructing all valid
+ *  Eurodollar outrights. This only relies on secdef.dat file.
+ */
+class FutureFactory
+{
+public:
+	FutureFactory() = default;
+	
+	void some_function() {};
+
+private:
+	std::vector<std::string> list_of_contracts;
+
+
+};
+
 /*
 struct OptionsContract : public FuturesContract
 {
