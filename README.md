@@ -1,8 +1,9 @@
 # FuturesLib
 FuturesLib is a package for interacting with futures and options on futures.
-Since this is my first Github project the main goal will be to practice coding
-structure, style, and readability. The first version will be developed solely
-to CME Globex. All suggestions are welcome.
+The goal of the project is to provide an API that allows for custom UI trading
+modules. It is designed from the ground up and makes several assumptions for better
+performance. It is inspired by the hffix and QuantLib projects on Github.
+The first version is developed solely to CME Globex. Suggestions are welcome.
 
 ### Version 0.1.0
 
