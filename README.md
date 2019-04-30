@@ -1,17 +1,17 @@
 # FuturesLib
-FuturesLib is a package for interacting with futures and options on futures.
-The goal of the project is to provide an API that allows for custom UI trading
-modules. It is designed from the ground up and makes several assumptions for better
-performance. It is inspired by the hffix and QuantLib projects on Github.
-The first version is developed solely to CME Globex. Suggestions are welcome.
+FuturesLib aims to provide an API that allows users to implement their own
+custom trading modules. It designed specifically for futures and options on futures.
+It is designed from the ground up and makes several assumptions for better
+performance. It is inspired by the hffix and QuantLib projects on Github. The first 
+version is developed solely for use on CME Group Products. Suggestions are welcome.
 
 ### Version 0.1.0
 
-#### 4/28/19
+#### 4/29/19
 
-Completed secdef parsing functions. I now have a FuturesContract constructor that can read lines from secdef.dat.
-Once I figure out the proper design pattern for the FutureFactory class and FilterSecdef function, the factory
-will be a friend of FuturesContract and the constructor will be a member func of the factory instead.
+GenerateTextFiles is now a member function of FutureFactory. Considering making FutureFactory
+a singleton and have it be responsible for construction of all FuturesContracts. Should I make
+a separate class FutureUpdater?
 
 #### 4/22/19 Design changes:
 
