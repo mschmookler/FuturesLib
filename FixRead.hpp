@@ -24,6 +24,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #include "J:/SCHMOOKLER/src/hffix.hpp"
 #include <iostream>
 #include <fstream>		// For writing log file
+#include <sys/stat.h>	// For stat
 
 namespace flf {
 
@@ -47,8 +48,11 @@ std::string get_tag_value(int tag, std::string FIX_msg)
 {
 	std::string str_to_find = '\x01' + std::to_string(tag) + '=';
 	int begin, end;
-	if (FIX_msg.find(str_to_find) == FIX_msg.npos)
+	if (FIX_msg.find(str_to_find) == std::string::npos)
+	{
+		std::cout << "Not found" << '\n';
 		return "";
+	}
 	else {
 		begin = FIX_msg.find(str_to_find) + str_to_find.length();
 		end = FIX_msg.find('\x01', begin);
@@ -61,12 +65,18 @@ std::string get_tag_value(int tag, std::string FIX_msg)
  *  Given a secdef file containing Globex products, an output filename,
  *  and a tag value pair, filters the full product list into products that
  *  match the filter.
+ *  Note: If the output file already exists, this function does nothing.
  */
-void FilterSecdef(std::string file_to_filter, std::string filtered,
+void FilterSecdef(std::string file_to_filter, std::string output_file,
 	int tag_num, std::string tag_val)
 {
+	/* This snippet exits the function if the output file already exists. */
+	struct stat buf;
+	if (stat(output_file.c_str(), &buf) != -1)
+		return;
+	
 	std::ifstream readfile(file_to_filter);
-	std::ofstream outfile(filtered);
+	std::ofstream outfile(output_file);
 	std::string line;
 
 	if (readfile.is_open() && outfile.is_open())

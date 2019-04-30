@@ -24,6 +24,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #include <iostream>
 #include <fstream>
 #include "Structures.hpp"
+#include "FixFunctionsR.hpp"
 #include "J:\SCHMOOKLER\src\hffix.hpp"
 
 #ifndef NO_BOOST_DATETIME
@@ -115,6 +116,8 @@ public:
 		}
 	}
 
+	friend class FutureFactory;
+
 protected:
 private:
 	ProductSpecs product;
@@ -125,16 +128,41 @@ private:
 
 /*! \brief Class for creating FuturesContracts
  *
- *  Example: FutureFactory("GE", "OUT");
- *  This is an object capable of constructing all valid
- *  Eurodollar outrights. This only relies on secdef.dat file.
+ *  This class contains methods for constructing FuturesContracts
+ *  and other ancillary operations pertaining to the secdef file
+ *  published by Globex.
  */
 class FutureFactory
 {
 public:
 	FutureFactory() = default;
+
 	
-	void some_function() {};
+	/*! \brief Generates text files that contain filtered versions of secdef flat file.
+	 *
+	 *  The process starts on secdef_fut.txt. First, we filter out all instruments that
+	 *  belong to the specific security group. Next, we filter by strategy type i.e. SP,
+	 *  BF, DF, CF, etc.
+	 */
+	void GenerateTextFiles(std::string product_symbol, std::string strategy_type)
+	{
+		// product symbol file
+		std::string filename1 = "H:\\secdef\\secdef_fut_" + product_symbol + ".txt";
+
+		// symbol + strategy file
+		std::string filename2 = "H:\\secdef\\secdef_fut_" + product_symbol + "_" + strategy_type + ".txt";
+
+		// Filter specific product from all futures
+		flf::FilterSecdef("H:\\secdef\\secdef_fut.txt", filename1, 1151, product_symbol);
+
+		if (strategy_type == "OUT")
+		{
+			flf::FilterSecdef(filename1, filename2, 762, "");
+		}
+		else {
+			flf::FilterSecdef(filename1, filename2, 762, strategy_type);
+		}
+	}
 
 private:
 	std::vector<std::string> list_of_contracts;
