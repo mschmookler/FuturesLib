@@ -1,24 +1,18 @@
 # FuturesLib
 FuturesLib aims to provide an API that allows users to implement their own
-custom trading modules. It designed specifically for futures and options on futures.
-It is designed from the ground up and makes several assumptions for better
-performance. It is inspired by the hffix and QuantLib projects on Github. The first 
-version is developed solely for use on CME Group Products. Suggestions are welcome.
+custom trading modules. It is developed specifically for trading futures and options
+on futures through CME Group exchanges.
 
-### Version 0.1.0
+## Design goals
+1. Minimize or eliminate heap allocation.
+2. Simple and easy-to-use.
+3. Thorough logging.
 
-#### 4/29/19
+## More info
+This is my first non-trivial C++ project as well as my first Github project so
+expectations are low. I drew inspiration from two projects in particular: hffix and
+QuantLib. Both are available on Github.
 
-GenerateTextFiles is now a member function of FutureFactory. Considering making FutureFactory
-a singleton and have it be responsible for construction of all FuturesContracts. Should I make
-a separate class FutureUpdater?
+As I am clearly a beginner, suggestions are welcome.
 
-#### 4/22/19 Design changes:
-
-The important data-containing objects in the library will now be composed of smaller "building blocks".
-Each building block is a POD struct. The data within each struct should be obtained from the same source
-at the same time.
-
-### Version 0.0.0
-
-Anything done while this repo is still private will be version 0.
+#### Version 0.2.0
