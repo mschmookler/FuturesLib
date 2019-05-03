@@ -27,48 +27,28 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #ifndef FUTURESLIB_STRUCTURES_H
 #define FUTURESLIB_STRUCTURES_H
 
-#include <string>
+#include <boost\date_time\posix_time\posix_time.hpp>
+#include <boost\date_time\gregorian\gregorian_types.hpp>
 
-#include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\posix_time\posix_time.hpp"
-#include "C:\Users\mschmookler\boost\boost_1_69_0\boost\date_time\gregorian\gregorian_types.hpp"
-
-/*!
-\brief POD struct for product specifications.
-
-Contract specs that are invariant between contracts.
-e.g. contract size, currency, etc. Uniquely determined
-by tag 6937-Asset and tag 762-SecuritySubType.
-*/
+/*! \brief POD struct for product specifications.
+ *
+ *  Instrument details that are invariant between contracts
+ *  of the same type. e.g. contract size, currency, etc. Uniquely
+ *  determined by tag 6937-Asset and tag 762-SecuritySubType.
+ */
 struct ProductSpecs
 {
-	/// Default constructor
+	/*!
+	\brief Default constructor
+	*/
 	ProductSpecs() = default;
-
-	/// Main constructor
-	ProductSpecs(std::string exch, int p_complex, int ms_id,
-		std::string sec_group, std::string sec_type,
-		std::string curr, char match_algo,
-		float uomq, float df) :
-		product_complex(p_complex),
-		mkt_seg_id(ms_id),
-		security_group(sec_group),
-		security_type(sec_type),
-		currency(curr),
-		match_algorithm(match_algo),
-		unit_of_measure_qty(uomq),
-		display_factor(df)
-	{
-		strncpy_s(exchange, exch.c_str(), 7);
-	}
-
 
 	/*!
 	\brief tag 207-SecurityExchange
 	
 	Exchange code: XCME, XCBT, XNYM, XCEC, etc.
-	Limited to 7 chars + NULL.
 	*/
-	char exchange[8] = {'\0'};
+	char exchange[8] = { '\0' };
 
 
 	/*!
@@ -79,7 +59,9 @@ struct ProductSpecs
 	*/
 	int product_complex = 0;
 
-	/// tag 1300-MarketSegmentID
+	/*!
+	\brief tag 1300-MarketSegmentID
+	*/
 	int mkt_seg_id = 0;
 
 	/*!
@@ -89,7 +71,7 @@ struct ProductSpecs
 	A product group can contain multiple related products.
 	Ex. symbols ZL, ZM, and ZS all belong to the ZS group.
 	*/
-	std::string product_symbol = "";
+	char security_group[8] = { '\0' };
 
 	/*!
 	\brief tag 6937-Asset
@@ -98,25 +80,22 @@ struct ProductSpecs
 	Not to be confused with tag 1151-SecurityGroup.
 	e.g. ES, ZN, ZC, ZE (GE Opt), GE
 	Corresponds to tag 55 = Symbol for iLink Order Entry
-	Limit to 8 chars.
 	*/
-	std::string product_symbol = "";
+	char product_symbol[8] = { '\0' };
 
 	/*! \brief tag 762-SecuritySubType
 	
 	Indicates spread or combo type.
 	Ex. SP, BF, DF, CF, VT
-	Limit to 4 chars.
 	*/
-	std::string security_type = "";
+	char security_type[4] = { '\0' };
 
 	/*!
 	\brief tag 15-Currency
 	
 	Currency used in price.
-	Limit to 4 chars.
 	*/
-	std::string currency = "";
+	char currency[4] = { '\0' };
 
 	/*!
 	\brief tag 1142-MatchAlgorithm
@@ -151,25 +130,18 @@ struct ProductSpecs
  */
 struct ContractSpecs
 {
-	/*! \brief Default constructor */
+	/*!
+	\brief Default constructor
+	*/
 	ContractSpecs() = default;
-
-	/*! \brief Main constructor */
-	ContractSpecs(std::string mmy, float mpi, bool ifp,
-		uint32_t mf, uint32_t sf, int pdf) :
-		min_price_increment(mpi),
-		is_fractional_price(ifp),
-		main_fraction(mf),
-		sub_fraction(sf),
-		price_display_format(pdf) {}
 
 	/*!
 	\brief tag 200-MaturityMonthYear
 	
 	TODO: change type to MonthYear type?
-	Limit to 16 chars.
+	Limited to 15 chars.
 	*/
-	std::string matruity_month_year = "";
+	char matruity_month_year[16] = { '\0' };
 
 	/*!
 	\brief tag 969-MinPriceIncrement
@@ -228,17 +200,16 @@ struct ContractSpecs
  *
  *
  */
-struct InstrumentIDs
+struct InstrumentID
 {
-	/*! \brief Default constructor */
-	InstrumentIDs() = default;
+	/*!
+	\brief Default constructor
+	*/
+	InstrumentID() = default;
 
-	/*! \brief Main constructor */
-	InstrumentIDs(int tag48, std::string tag55) :
-		security_id(tag48),
-		instrument_symbol(tag55) {}
-
-	/*! \brief tag 48-SecurityID */
+	/*!
+	\brief tag 48-SecurityID
+	*/
 	int security_id = 0;
 
 	/*!
@@ -249,16 +220,15 @@ struct InstrumentIDs
 	Corresponds to tag 107 = SecurityDesc for iLink Order Entry
 	Limit to 24 chars.
 	*/
-	std::string instrument_symbol = "";
+	char instrument_symbol = { '\0' };
 };
 
 struct OptionSpecs
 {
-	/*! \brief Default constructor */
+	/*!
+	\brief Default constructor
+	*/
 	OptionSpecs() = default;
-
-	/*! \brief Main constructor */
-	//OptionSpecs();
 
 	/*!
 	\brief tag 201-PutOrCall
@@ -267,7 +237,9 @@ struct OptionSpecs
 	*/
 	char put_call = '\0';
 
-	/*! \brief tag 202-StrikePrice */
+	/*!
+	\brief tag 202-StrikePrice
+	*/
 	float strike_price = 0;
 
 	/*!
@@ -317,11 +289,31 @@ struct RealTimeData
 	boost::posix_time::ptime last_trade_time;
 };
 
-struct Order
-{
-
+enum order_duration {
+	DAY, GTC, GTD
 };
 
+struct Order
+{
+	char account[12];
+	char buy_sell;
+	uint32_t quantity;
+	InstrumentID* piid;
+
+	// Mkt = '1', Limit = '2',
+	// Stop = '3', STL = '4',
+	// Market-Limit = 'K'
+	char order_type;
+	
+	double limit_price;
+	double stop_price;
+	order_duration duration = DAY;
+	
+	// Add various order ID's?
+	// Or put in separate struct
+};
+
+// IDK where to put this yet
 namespace pcomplex {
 	enum {
 		CommodityAg = 2,

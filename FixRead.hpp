@@ -1,7 +1,7 @@
 /*
 FuturesLib is a package for interacting with futures and options on futures.
 
-Version 0.0.0
+Version 0.2.0
 
 Copyright(C) 2019 Matthew A Schmookler
 
@@ -18,27 +18,15 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef FUTURESLIB_FIXFUNCTIONSR_H
-#define FUTURESLIB_FIXFUNCTIONSR_H
+#ifndef FUTURESLIB_FIXREAD_H
+#define FUTURESLIB_FIXREAD_H
 
-#include "J:/SCHMOOKLER/src/hffix.hpp"
+#include "hffix.hpp"
 #include <iostream>
-#include <fstream>		// For writing log file
-#include <sys/stat.h>	// For stat
+#include <fstream>       // For writing log file
+#include <sys/stat.h>    // For stat
 
 namespace flf {
-
-/*
-int atoint(char* begin, char* end)
-{
-	int val(0);
-
-	for (; begin < end; ++begin) {
-		val *= 10u;
-		val += (int)(*begin - '0');
-	}
-	return val;
-}*/
 
 /*! \brief Returns the field value for the FIRST instance of a given tag number
  *
@@ -50,11 +38,40 @@ std::string get_tag_value(int tag, std::string FIX_msg)
 	int begin, end;
 	if (FIX_msg.find(str_to_find) == std::string::npos)
 	{
-		std::cout << "Not found" << '\n';
 		return "";
 	}
 	else {
 		begin = FIX_msg.find(str_to_find) + str_to_find.length();
+		end = FIX_msg.find('\x01', begin);
+	}
+	return FIX_msg.substr(begin, end - begin);
+}
+
+std::string get_activation_time(std::string FIX_msg)
+{
+	std::string str_to_find = "\001865=5";
+	int begin, end;
+	if (FIX_msg.find(str_to_find) == std::string::npos)
+	{
+		return "";
+	}
+	else {
+		begin = FIX_msg.find(str_to_find) + 12;
+		end = FIX_msg.find('\x01', begin);
+	}
+	return FIX_msg.substr(begin, end - begin);
+}
+
+std::string get_expiration_time(std::string FIX_msg)
+{
+	std::string str_to_find = "\001865=7";
+	int begin, end;
+	if (FIX_msg.find(str_to_find) == std::string::npos)
+	{
+		return "";
+	}
+	else {
+		begin = FIX_msg.find(str_to_find) + 12;
 		end = FIX_msg.find('\x01', begin);
 	}
 	return FIX_msg.substr(begin, end - begin);
@@ -90,27 +107,74 @@ void FilterSecdef(std::string file_to_filter, std::string output_file,
 	readfile.close();
 	outfile.close();
 }
-
-/* Pseudocode:
-
-for each globex_product_symbol in list
+/*! \brief Generates CSV file containing all futures instruments
+ *
+ *  Given a list of product symbols, uses secdef files to create a CSV of all
+ *  futures instruments belonging to the list.
+ *  Secdef file is found at ftp://ftp.cmegroup.com/SBEFix/Production/secdef.dat.gz
+ */
+void DatabaseCSVfromSecdef(std::vector<std::string> product_list)
 {
-	new_file_name = prefix + globex_product_symbol + ".txt";
-	FilterSecdef(all_futures.txt, new_file_name, 1151, globex_product_symbol);
+	int tag_list[] = {
+	55,
+	48,
+	207,
+	462,
+	1151,
+	6937,
+	762,
+	15,
+	1142,
+	1147,
+	9787,
+	200,
+	969
+	};
+
+	std::vector<std::string> file_list;
+
+	// Loop through product_list
+	for (int i = 0; i < product_list.size(); i++)
+	{
+		// Name of file containing all futures in a specific asset.
+		std::string filename1 = "H:\\secdef\\secdef_fut_" + product_list[i] + ".txt";
+
+		// Generates a text file for each product
+		flf::FilterSecdef("H:\\secdef\\secdef_fut.txt", filename1, 6937, product_list[i]);
+
+		// Add generated file to file_list
+		file_list.push_back(filename1);
+	}
+
+	// Open target file for writing
+	std::ofstream outfile("H:\\secdef\\all_futures_csv.txt");
+
+	// Loop through file_list
+	for (int i = 0; i < file_list.size(); i++)
+	{
+		std::ifstream readfile(file_list[i]);
+		std::string line;
+
+		if (readfile.is_open() && outfile.is_open())
+		{
+			std::cout << "Generating futures from " << file_list[i] << '\n';
+			while (std::getline(readfile, line))
+			{
+				std::string newline = "";
+				for (int j = 0; j < 13; j++)	// size of tag_list
+				{
+					newline.append(flf::get_tag_value(tag_list[j], line));
+					newline.push_back(',');
+				}
+				newline.append(flf::get_activation_time(line));
+				newline.push_back(',');
+				newline.append(flf::get_expiration_time(line));
+				outfile << newline << '\n';
+			}
+		}
+	}
 }
-*/
-
-// void UpdateContractFromSecdef(FuturesContract *fp, string secdef_line);
-
-// TODO: LoadContractFromSecdef("GEZ9")
-// Check if database has entry "GEZ9"
-// If yes, update current entry.
-// If no, create temp object A.
-// Parse secdef file until "\x0155=GEZ9\x01" is found and return line number
-// Parse line and populate A with relevant values.
-// Write A to database.
-// Delete A.
 
 } // namespace flf
 
-#endif // FUTURESLIB_FIXFUNCTIONSR_H
+#endif // FUTURESLIB_FIXREAD_H

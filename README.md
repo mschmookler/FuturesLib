@@ -13,6 +13,6 @@ This is my first non-trivial C++ project as well as my first Github project so
 expectations are low. I drew inspiration from two projects in particular: hffix and
 QuantLib. Both are available on Github.
 
-As I am clearly a beginner, suggestions are welcome.
+All suggestions are welcome.
 
 #### Version 0.2.0
