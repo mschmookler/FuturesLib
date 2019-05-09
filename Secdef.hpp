@@ -27,6 +27,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 #ifndef FUTURESLIB_SECDEF_H
 #define FUTURESLIB_SECDEF_H
 
+#include "FixRead.hpp"
+#include <string>
+
+#include <vector>
+ 
 /*! \brief Filters secdef data file according to a matching criterion.
  *
  *  Given a secdef file containing Globex products, an output filename,
@@ -90,7 +95,7 @@ void DatabaseCSVfromSecdef(std::vector<std::string> product_list)
 		std::string filename1 = "H:\\secdef\\secdef_fut_" + product_list[i] + ".txt";
 
 		// Generates a text file for each product
-		flf::FilterSecdef("H:\\secdef\\secdef_fut.txt", filename1, 6937, product_list[i]);
+		FilterSecdef("H:\\secdef\\secdef_fut.txt", filename1, 6937, product_list[i]);
 
 		// Add generated file to file_list
 		file_list.push_back(filename1);
@@ -124,6 +129,65 @@ void DatabaseCSVfromSecdef(std::vector<std::string> product_list)
 		}
 	}
 }
+
+/*! \brief Class for reading and processing secdef.dat file.
+ *
+ *  
+ *
+ *
+ */
+class Secdef_Reader
+{
+public:
+
+	/*!
+	\brief Construct from secdef.dat
+	\param file Full path to secdef.dat file
+	*/
+	Secdef_Reader(std::string file)
+	{
+		readfile.open(file);
+	}
+
+
+	/*!
+	\brief Closes secdef.dat
+	*/
+	~Secdef_Reader()
+	{
+		readfile.close();
+	}
+
+	/*!
+	\brief True if secdef.dat is open.
+	*/
+	bool is_open()
+	{
+		return readfile.is_open();
+	}
+
+	void getline()
+	{
+		readfile.getline(buffer_, 2000);
+		buffer_size_ = readfile.gcount();	// num of chars read
+	}
+
+
+private:
+
+	std::ifstream readfile;
+
+	/*!
+	\brief Buffer for line processing
+	
+	This buffer is used for line processing and should
+	be large enough to fit any line in secdef file.
+	*/
+	static char buffer_[2000];
+
+	int buffer_size_;
+
+};
 
 
 #endif
