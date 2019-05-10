@@ -32,42 +32,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vector>
  
-/*! \brief Filters secdef data file according to a matching criterion.
- *
- *  Given a secdef file containing Globex products, an output filename,
- *  and a tag value pair, filters the full product list into products that
- *  match the filter.
- *  Note: If the output file already exists, this function does nothing.
- */
-void FilterSecdef(std::string file_to_filter, std::string output_file,
-	int tag_num, std::string tag_val)
-{
-	/* This snippet exits the function if the output file already exists. */
-	struct stat buf;
-	if (stat(output_file.c_str(), &buf) != -1)
-		return;
-	
-	std::ifstream readfile(file_to_filter);
-	std::ofstream outfile(output_file);
-	std::string line;
 
-	if (readfile.is_open() && outfile.is_open())
-	{
-		while (std::getline(readfile, line))
-		{
-			if (flf::get_tag_value(tag_num, line) == tag_val)
-				outfile << line << '\n';
-		}
-	}
-	readfile.close();
-	outfile.close();
-}
 /*! \brief Generates CSV file containing all futures instruments
  *
  *  Given a list of product symbols, uses secdef files to create a CSV of all
  *  futures instruments belonging to the list.
  *  Secdef file is found at ftp://ftp.cmegroup.com/SBEFix/Production/secdef.dat.gz
- */
+ *
 void DatabaseCSVfromSecdef(std::vector<std::string> product_list)
 {
 	int tag_list[] = {
@@ -128,7 +99,7 @@ void DatabaseCSVfromSecdef(std::vector<std::string> product_list)
 			}
 		}
 	}
-}
+}*/
 
 /*! \brief Class for reading and processing secdef.dat file.
  *
@@ -166,15 +137,56 @@ public:
 		return readfile.is_open();
 	}
 
-	void getline()
+	/*void getline()
 	{
 		readfile.getline(buffer_, 2000);
 		buffer_size_ = readfile.gcount();	// num of chars read
+	}*/
+
+	
+	/*!
+	\brief Filters secdef data file according to a matching criterion.
+	
+	Given an output filename, and a tag value pair, filters the full
+	product list into products that match the filter.
+	Note: If the output file already exists, this function does nothing.
+
+	\param[in] outfile Full path for output file
+	\param[in] tag_num Integer tag number
+	\param[in] tag_val String tag value
+	*/
+	void filter(std::string outfile, int tag_num, std::string tag_val)
+	{
+		/// This snippet exits the function if the output file already exists.
+		struct stat buf;
+		if (stat(outfile.c_str(), &buf) != -1)
+			return;
+
+		std::ofstream writefile(outfile);
+		std::string line;
+
+		if (is_open() && writefile.is_open())
+		{
+			while (std::getline(readfile, line))
+			{
+				if (flf::get_tag_value(tag_num, line) == tag_val)
+					writefile << line << '\n';
+			}
+		}
+
+		writefile.close();
+	}
+	
+	std::string filterFutures()
+	{
+		std::string new_filename = filename.substr(0, filename.length() - 4) + "_fut.txt";
+		filter(new_filename, 167, "FUT");
+		return new_filename;
 	}
 
 
 private:
-
+	std::string filename;
 	std::ifstream readfile;
 
 	/*!
@@ -183,9 +195,9 @@ private:
 	This buffer is used for line processing and should
 	be large enough to fit any line in secdef file.
 	*/
-	static char buffer_[2000];
+	//static char buffer_[2000];
 
-	int buffer_size_;
+	//int buffer_size_;
 
 };
 
