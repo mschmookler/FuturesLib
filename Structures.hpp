@@ -220,7 +220,7 @@ struct InstrumentID
 	Corresponds to tag 107 = SecurityDesc for iLink Order Entry
 	Limit to 24 chars.
 	*/
-	char instrument_symbol = { '\0' };
+	char instrument_symbol[24] = { '\0' };
 };
 
 struct OptionSpecs
